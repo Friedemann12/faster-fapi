@@ -8,32 +8,29 @@ services:
       POSTGRES_DB: app
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
+    networks: [backend]
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    networks:
-      - backend
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d app || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 5
-    command: >
-      postgres
-      -c shared_buffers=16GB
-      -c work_mem=64MB
-      -c maintenance_work_mem=256MB
-      -c effective_cache_size=6GB
 
   cache:
-    image: valkey/valkey:9-alpine
-    container_name: cache
-    ports:
-      - "6379:6379"
-    command: ["valkey-server", "--appendonly", "yes"]
+    image: valkey/valkey:latest
+    container_name: valkey
+    networks: [backend]
     volumes:
       - valkey-data:/data
-    networks:
-      - backend
+    command:
+      [
+        "valkey-server",
+        "--save", "",
+        "--appendonly", "no",
+        "--maxmemory", "8gb",
+        "--maxmemory-policy", "allkeys-lru",
+      ]
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
       interval: 10s
@@ -42,41 +39,26 @@ services:
 
   api:
     build:
-      context: .
-    image: fapi-fastify:latest
+      context: ../prototype
+      dockerfile: Dockerfile
+    image: faster-fapi
+    container_name: api
+    ports:
+      - "3000:3000"
     environment:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://app:app@db:5432/app
       VALKEY_HOST: cache
       VALKEY_PORT: 6379
+      SEED_DATA_DIR: /usr/src/app/output
+      DRIZZLE_CONFIG_PATH: /usr/src/app/drizzle.config.ts
     depends_on:
       db:
         condition: service_healthy
       cache:
         condition: service_healthy
-    networks:
-      - backend
-    expose:
-      - "3000"
-    deploy:
-      replicas: 3
-      restart_policy:
-        condition: any
-      update_config:
-        order: start-first
-      endpoint_mode: dnsrr
-
-  proxy:
-    image: haproxy:3.2-alpine
-    container_name: proxy
-    volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    ports:
-      - "80:80"
-    networks:
-      - frontend
-      - backend
+    networks: [backend]
 
 networks:
   frontend:

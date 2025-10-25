@@ -1,5 +1,5 @@
-import { CacheHandler } from '@handlers/CacheHandler'
-import { ValkeyClient } from '@cache/ValkeyClient'
+import { CacheHandler } from './handlers/CacheHandler'
+import { ValkeyClient } from './cache/ValkeyClient'
 import fastify from 'fastify'
 import path from 'path'
 

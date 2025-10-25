@@ -1,9 +1,9 @@
 import { randomUUID } from "crypto"
 import { Booking, BookingCandidate } from "../types"
 import { db } from '../index'
-import { booking, customer } from '@db/schema'
+import { booking, customer } from '../db/schema'
 import { and, gte, lte, eq } from 'drizzle-orm'
-import { ValkeyClient } from '@cache/ValkeyClient'
+import { ValkeyClient } from '../cache/ValkeyClient'
 import crypto from 'crypto'
 
 interface BookingQueryResult {
