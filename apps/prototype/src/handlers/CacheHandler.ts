@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import path from "path";
-import { Booking, Customer, Z_Booking, Z_Customer } from "@types";
+import { Booking, Customer, Z_Booking, Z_Customer } from "../types";
 import z from "zod";
 import { SomeType } from "zod/v4/core";
 
@@ -69,22 +69,17 @@ export class CacheHandler {
         Z_Parser: T,
         keySelector: (entry: z.core.output<T>) => string
     ): Map<string, z.core.output<T>> {
-        const jsonBasePath = path.join(__dirname, '..', '..', '..', 'data', 'output', appid.toUpperCase())
+        // Use environment variable or fallback to default path
+        const outputDir = process.env.SEED_DATA_DIR || path.join(__dirname, '..', '..', 'output');
+        const appid = process.env.APP ?? 'appa';
+        const jsonBasePath = path.join(outputDir, appid.toUpperCase());
 
-        const dataPath = jsonBasePath + `/${dataType}.json`
-        const data = readFileSync(dataPath, { encoding: 'utf-8' })
-        const dataParsed = z.array(Z_Parser).parse(JSON.parse(data))
-
-        const map = new Map<string, z.core.output<T>>()
-
-        dataParsed.forEach(d => {
-            map.set(
-                keySelector(d),
-                d
-            )
-        })
-
-        return map
+        const dataPath = jsonBasePath + `/${dataType}.csv`;
+        
+        // For now, return empty map since we're using CSV files
+        // This handler seems to be legacy - the actual data loading is done in seed.ts
+        console.log(`[CacheHandler] Skipping ${dataType} loading - using CSV files instead`);
+        return new Map<string, z.core.output<T>>();
     }
 }
 

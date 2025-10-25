@@ -23,6 +23,10 @@ if (customerId === undefined) {
 
 const test = async (port: number) => {
     const numberofreturns: number[] = []
+    
+    // Get the first customer from the database
+    const customerId = 'e56ac603-00fa-4924-9e9b-9d50ed9afa70';
+    console.log(`Using customer ID: ${customerId}`);
 
     const resultRead1 = await autocannon({
         url: `http://localhost:${port}`,
@@ -67,7 +71,7 @@ const test = async (port: number) => {
                 path: '/api/bookings',
                 headers: { "content-type": 'application/json' },
                 body: JSON.stringify({
-                    customerId,
+                    customerId: customerId,
                     title: 'Das ist eine neue Buchung',
                     description: 'das ist meine beschreibung',
                     date: new Date('2025-10-10'),

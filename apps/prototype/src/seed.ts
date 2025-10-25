@@ -103,14 +103,19 @@ async function processLargeCsvFile(filePath: string, processor: (data: any[]) =>
 async function seedDatabase() {
   console.log('🌱 Starting database seeding...');
   
-  const outputDir = path.join(__dirname, '../../data/output');
+  // Use environment variable or fallback to default path
+  const outputDir = process.env.SEED_DATA_DIR || path.join(__dirname, '../../output');
   const tenants = ['APPA', 'APPB', 'APPC'];
 
   try {
-    // Clear existing data
+    // Clear existing data (only if tables exist)
     console.log('🗑️  Clearing existing data...');
-    await db.execute(sql`TRUNCATE TABLE booking CASCADE`);
-    await db.execute(sql`TRUNCATE TABLE customer CASCADE`);
+    try {
+      await db.execute(sql`TRUNCATE TABLE booking CASCADE`);
+      await db.execute(sql`TRUNCATE TABLE customer CASCADE`);
+    } catch (error) {
+      console.log('ℹ️  Tables not found, skipping truncate (will be created by migrations)');
+    }
     
     // Seed customers first (foreign key dependency)
     console.log('👥 Seeding customers...');
@@ -163,12 +168,16 @@ async function seedDatabase() {
     console.log('🎉 Database seeding completed successfully!');
     
     // Show summary
-    const customerResult = await db.execute(sql`SELECT COUNT(*) as count FROM customer`);
-    const bookingResult = await db.execute(sql`SELECT COUNT(*) as count FROM booking`);
-    
-    console.log(`📊 Summary:`);
-    console.log(`  👥 Customers: ${customerResult.rows[0].count}`);
-    console.log(`  📅 Bookings: ${bookingResult.rows[0].count}`);
+    try {
+      const customerResult = await db.execute(sql`SELECT COUNT(*) as count FROM customer`);
+      const bookingResult = await db.execute(sql`SELECT COUNT(*) as count FROM booking`);
+      
+      console.log(`📊 Summary:`);
+      console.log(`  👥 Customers: ${customerResult.rows[0].count}`);
+      console.log(`  📅 Bookings: ${bookingResult.rows[0].count}`);
+    } catch (error) {
+      console.log('ℹ️  Could not get summary (tables may not exist yet)');
+    }
     
   } catch (error) {
     console.error('❌ Error seeding database:', error);
