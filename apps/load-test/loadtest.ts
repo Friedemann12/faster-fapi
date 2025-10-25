@@ -8,7 +8,18 @@ const totalRequests = 10
 
 let httpErrors = 0;
 
-const appid = process.env.APP ?? 'appa';
+const querystring = 'start=2025-10-20&end=2025-10-26'
+
+const customerport = 3000
+const appid = 'APPA';
+const customerId = await fetch(`http://localhost:${customerport}/api/customers`)
+    .then(r => r.json())
+    .then(j => j?.id)
+
+if (customerId === undefined) {
+    console.log('did not find a cutomer')
+    process.exit(1)
+}
 
 const test = async (port: number) => {
     const numberofreturns: number[] = []
@@ -25,8 +36,9 @@ const test = async (port: number) => {
         requests: [
             {
                 method: 'GET',
-                path: '/api/bookings?start=2025-10-01&end=2025-10-30',
+                path: `/api/bookings?${querystring}`,
                 onResponse: (status, _body, _context) => {
+
                     if (status !== 200) {
                         console.error(`GET Error ${status}: ${_body}`);
                         httpErrors++;
@@ -90,7 +102,7 @@ const test = async (port: number) => {
         requests: [
             {
                 method: 'GET',
-                path: '/api/bookings?start=2025-10-01&end=2025-10-30',
+                path: `/api/bookings?${querystring}`,
                 onResponse: (status, _body, _context) => {
                     if (status !== 200) {
                         console.error(`GET Error ${status}: ${_body}`);

@@ -16,7 +16,17 @@ interface BookingQueryResult {
     cacheKey?: string
 }
 
-const appid = process.env.APP ?? 'appa'
+interface BookingQueryResult {
+    count: number
+    start: string
+    end: string
+    bookings: any[]
+    fetchTimeMs: number
+    cached?: boolean
+    cacheKey?: string
+}
+
+const appid = process.env.APP ?? 'APPA'
 
 export class BookingHandler {
     // Default TTL for booking queries (5 minutes)
